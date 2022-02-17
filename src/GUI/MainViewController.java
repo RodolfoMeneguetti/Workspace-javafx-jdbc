@@ -1,9 +1,9 @@
 package GUI;
 
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.function.Consumer;
 
 import GUI.Util.Alerts;
 import Model.Services.DepartmentService;
@@ -22,74 +22,59 @@ public class MainViewController implements Initializable {
 
 	@FXML
 	private MenuItem menuItemSeller;
-	
+
 	@FXML
 	private MenuItem menuItemDepartment;
-	
+
 	@FXML
 	private MenuItem menuItemAbout;
-	
+
 	@FXML
-	public void onMenuItemSellerAction(){
+	public void onMenuItemSellerAction() {
 		System.out.println("onMenuItemSellerAction");
 	}
-	
+
 	@FXML
-	public void onMenuItemDepartmentAction(){
-		loadView2("/GUI/DepartmentList.fxml");
+	public void onMenuItemDepartmentAction() {
+		/**/ loadView("/GUI/DepartmentList.fxml", (DepartmentListController controller) -> {
+			controller.setDepartmentService(new DepartmentService());
+			controller.updateTableView();
+		});
 	}
-	
+
 	@FXML
-	public void onMenuItemAboutAction(){
-		loadView("/GUI/About.fxml");
+	public void onMenuItemAboutAction() {
+		loadView("/GUI/About.fxml", x -> {
+		});
 	}
-	
+
 	@Override
 	public void initialize(URL url, ResourceBundle rb) {
 
 	}
-		//  garante que nao seja interrompido	
-		 //(            )
-	private synchronized void loadView(String absoluteName) {
-		
+
+	// garante que nao seja interrompido
+	// ( )
+	private synchronized <T> void loadView(String absoluteName, Consumer<T> initializingAction) {
+
 		try {
-		FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
-		VBox newVBox = loader.load();
-		
-		Scene mainScene = Main.getMainScene();
-		VBox mainVBox = (VBox)((ScrollPane) mainScene.getRoot()).getContent();
-		
-		Node mainMenu = mainVBox.getChildren().get(0);
-		mainVBox.getChildren().clear();
-		mainVBox.getChildren().add(mainMenu);
-		mainVBox.getChildren().addAll(newVBox.getChildren());
-		
-		}catch (IOException e) {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
+			VBox newVBox = loader.load();
+
+			Scene mainScene = Main.getMainScene();
+			VBox mainVBox = (VBox) ((ScrollPane) mainScene.getRoot()).getContent();
+
+			Node mainMenu = mainVBox.getChildren().get(0);
+			mainVBox.getChildren().clear();
+			mainVBox.getChildren().add(mainMenu);
+			mainVBox.getChildren().addAll(newVBox.getChildren());
+			//
+			T controller = loader.getController();
+			initializingAction.accept(controller);
+
+		} catch (IOException e) {
 			Alerts.showAlert("IO Exception", "Error Loader View", e.getMessage(), AlertType.ERROR);
 		}
 	}
-	
-private synchronized void loadView2(String absoluteName) {
-		
-		try {
-		FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
-		VBox newVBox = loader.load();
-		
-		Scene mainScene = Main.getMainScene();
-		VBox mainVBox = (VBox)((ScrollPane) mainScene.getRoot()).getContent();
-		
-		Node mainMenu = mainVBox.getChildren().get(0);
-		mainVBox.getChildren().clear();
-		mainVBox.getChildren().add(mainMenu);
-		mainVBox.getChildren().addAll(newVBox.getChildren());
-		
-		DepartmentListController controller = loader.getController();
-		controller.setDepartmentService(new DepartmentService());
-		controller.updateTableView();
-		
-		}catch (IOException e) {
-			Alerts.showAlert("IO Exception", "Error Loader View", e.getMessage(), AlertType.ERROR);
-		}
-	}
-	
+
 }
